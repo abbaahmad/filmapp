@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -62,13 +63,13 @@ public class FilmControllerTest {
     }
     
     @Test
+    @WithMockUser(username = "newuser@film.com", password = "newpassword", authorities = {"REGISTERED"})
     public void addFilmTest() throws Exception {
         FilmRequest newFilmRequest = getFilm();
         
         MvcResult result = mockMvc.perform(
                                           post(URI)
                                                   .contentType(MediaType.APPLICATION_JSON)
-                                                  //.content(mapper.writeValueAsString(newFilmRequest))
                                                   .content(mapToJson(newFilmRequest))
                                                   .accept(MediaType.APPLICATION_JSON))
                                   .andExpect(status().isCreated())
@@ -95,6 +96,7 @@ public class FilmControllerTest {
     }
     
     @Test
+    @WithMockUser(username = "newuser@film.com", password = "newpassword", authorities = {"REGISTERED"})
     public void getAllTest() throws Exception {
         FilmRequest newFilmRequest = getFilm();
         mockMvc.perform(
@@ -116,6 +118,7 @@ public class FilmControllerTest {
     }
     
     @Test
+    @WithMockUser(username = "newuser@film.com", password = "newpassword", authorities = {"REGISTERED"})
     public void getOneTest() throws Exception {
         FilmRequest newFilmRequest = getFilm();
         mockMvc.perform(get(URI+"/" + 10L))
@@ -151,6 +154,7 @@ public class FilmControllerTest {
     }
     
     @Test
+    @WithMockUser(username = "newuser@film.com", password = "newpassword", authorities = {"REGISTERED"})
     public void deleteTest() throws Exception {
         FilmRequest newFilmRequest = getFilm();
         mockMvc.perform(delete(URI+"/"+9L))
@@ -186,6 +190,7 @@ public class FilmControllerTest {
     }
     
     @Test
+    @WithMockUser(username = "newuser@film.com", password = "newpassword", authorities = {"REGISTERED"})
     public void updateTest() throws Exception {
         FilmRequest newFilmRequest = getFilm();
         MvcResult result = mockMvc.perform(

@@ -31,18 +31,25 @@ public class Review {
             generator = "review_sequence"
     )
     private Long id;
+    
     @ManyToOne(targetEntity=Film.class, fetch=FetchType.LAZY)
     @JoinColumn(name="film_id")
     @JsonIncludeProperties({"id", "name"})
     private Film film;
+    
     @CreatedDate
     private LocalDate createdOn;
+    
     @LastModifiedDate
     private LocalDate lastModified;
-    //@ManyToOne(targetEntity=User.class, fetch=FetchType.LAZY)
-    //@JoinColumn(name="user_id")
-    //private User createdBy;
+    
+    @ManyToOne(targetEntity=User.class, fetch=FetchType.LAZY)
+    @JoinColumn(name="users_id")
+    @JsonIncludeProperties({"id","username"})
+    private User user;
+    
     private Double userRating;
+    
     private String review;
     
     @Override
