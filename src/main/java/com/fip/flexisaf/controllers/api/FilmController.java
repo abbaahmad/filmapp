@@ -7,6 +7,8 @@ import com.fip.flexisaf.services.FilmService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -31,17 +33,17 @@ public class FilmController {
     
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Film add(@Valid @RequestBody FilmRequest filmRequest){
-        return filmService.add(filmRequest);
+    public Film add(@Valid @RequestBody FilmRequest filmRequest, @AuthenticationPrincipal UserDetails userDetails){
+        return filmService.add(filmRequest, userDetails);
     }
     
     @DeleteMapping("/{filmId}")
-    public void delete(@PathVariable Long filmId){
-        filmService.delete(filmId);
+    public void delete(@PathVariable Long filmId, @AuthenticationPrincipal UserDetails userDetails){
+        filmService.delete(filmId, userDetails);
     }
     
     @PutMapping()
-    public Film update(@Valid @RequestBody UpdateFilmRequest updateFilmRequest){
-        return filmService.update(updateFilmRequest);
+    public Film update(@Valid @RequestBody UpdateFilmRequest updateFilmRequest, @AuthenticationPrincipal UserDetails userDetails){
+        return filmService.update(updateFilmRequest, userDetails);
     }
 }

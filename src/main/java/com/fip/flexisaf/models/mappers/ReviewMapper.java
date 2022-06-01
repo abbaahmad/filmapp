@@ -4,8 +4,6 @@ import com.fip.flexisaf.controllers.requests.review.ReviewRequest;
 import com.fip.flexisaf.controllers.requests.review.UpdateReviewRequest;
 import com.fip.flexisaf.models.Review;
 
-import java.time.LocalDate;
-
 public class ReviewMapper {
     public static Review toReview(ReviewRequest reviewRequest){
         return new Review()
@@ -13,6 +11,7 @@ public class ReviewMapper {
                 .setFilm(reviewRequest.getFilm())
                 //.setCreatedOn(reviewRequest.getCreatedOn())
                 //.setLastModified(reviewRequest.getLastModified())
+                .setUser(reviewRequest.getUser())
                 .setUserRating(reviewRequest.getUserRating());
     }
     
@@ -21,6 +20,7 @@ public class ReviewMapper {
                 .setId(updateReviewRequest.getId())
                 .setReview(updateReviewRequest.getReview())
                 .setFilm(updateReviewRequest.getFilm())
+                .setUser(updateReviewRequest.getUser())
                 //.setCreatedOn(updateReviewRequest.getCreatedOn())
                 //.setLastModified(LocalDate.now())
                 .setUserRating(updateReviewRequest.getUserRating());
