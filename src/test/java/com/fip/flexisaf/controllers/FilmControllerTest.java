@@ -4,9 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fip.flexisaf.FilmappApplication;
+import com.fip.flexisaf.models.Role;
+import com.fip.flexisaf.models.User;
 import com.fip.flexisaf.repositories.FilmRepository;
 import com.fip.flexisaf.controllers.requests.film.FilmRequest;
 import com.fip.flexisaf.models.Film;
+import com.fip.flexisaf.repositories.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +39,9 @@ public class FilmControllerTest {
     @Autowired
     FilmRepository filmRepository;
     
+    @Autowired
+    UserRepository userRepository;
+    
     private final String URI = "/api/v1/film";
     
     @BeforeEach
@@ -54,7 +60,10 @@ public class FilmControllerTest {
             .setReleaseDate(LocalDate.parse("2009-12-10"));
         
         filmRepository.saveAll(List.of(pirates, avatar));
-        //filmRepository.deleteAll();
+        userRepository.save(new User()
+                                    .setEmail("bobreed@film.com")
+                                    .setPassword("bobbyreeder12")
+                                    .setRole(Role.REGISTERED));
     }
     
     @AfterEach
@@ -63,7 +72,7 @@ public class FilmControllerTest {
     }
     
     @Test
-    @WithMockUser(username = "newuser@film.com", password = "newpassword", authorities = {"REGISTERED"})
+    @WithMockUser(username = "admin@film.com", password = "administrator", authorities = {"ADMINISTRATOR"})
     public void addFilmTest() throws Exception {
         FilmRequest newFilmRequest = getFilm();
         
@@ -96,7 +105,7 @@ public class FilmControllerTest {
     }
     
     @Test
-    @WithMockUser(username = "newuser@film.com", password = "newpassword", authorities = {"REGISTERED"})
+    @WithMockUser(username = "admin@film.com", password = "administrator", authorities = {"ADMINISTRATOR"})
     public void getAllTest() throws Exception {
         FilmRequest newFilmRequest = getFilm();
         mockMvc.perform(
@@ -118,7 +127,7 @@ public class FilmControllerTest {
     }
     
     @Test
-    @WithMockUser(username = "newuser@film.com", password = "newpassword", authorities = {"REGISTERED"})
+    @WithMockUser(username = "admin@film.com", password = "administrator", authorities = {"ADMINISTRATOR"})
     public void getOneTest() throws Exception {
         FilmRequest newFilmRequest = getFilm();
         mockMvc.perform(get(URI+"/" + 10L))
@@ -154,7 +163,7 @@ public class FilmControllerTest {
     }
     
     @Test
-    @WithMockUser(username = "newuser@film.com", password = "newpassword", authorities = {"REGISTERED"})
+    @WithMockUser(username = "admin@film.com", password = "administrator", authorities = {"ADMINISTRATOR"})
     public void deleteTest() throws Exception {
         FilmRequest newFilmRequest = getFilm();
         mockMvc.perform(delete(URI+"/"+9L))
@@ -190,7 +199,7 @@ public class FilmControllerTest {
     }
     
     @Test
-    @WithMockUser(username = "newuser@film.com", password = "newpassword", authorities = {"REGISTERED"})
+    @WithMockUser(username = "admin@film.com", password = "administrator", authorities = {"ADMINISTRATOR"})
     public void updateTest() throws Exception {
         FilmRequest newFilmRequest = getFilm();
         MvcResult result = mockMvc.perform(
