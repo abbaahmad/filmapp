@@ -92,13 +92,14 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> {
                     throw new ResourceNotFoundException("No such User "+userDetails.getUsername());
                 });
-                
-        if(user.getRole().equals(Role.REGISTERED) || user.getRole().equals(Role.ADMINISTRATOR)) {
-            Review r = reviewRepository.findById(reviewId)
-                                       .orElseThrow(() -> {
-                                           throw new ResourceNotFoundException("Could not find review with ID: " + reviewId);
-                                       });
+        Review r = reviewRepository.findById(reviewId)
+                                   .orElseThrow(() -> {
+                                       throw new ResourceNotFoundException("Could not find review with ID: " + reviewId);
+                                   });
+        if(user.getRole().equals(Role.ADMINISTRATOR) || r.getUser().getUsername().equals(user.getUsername())) {
             reviewRepository.delete(r);
+        } else{
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Credentials unauthorised for such action");
         }
     }
     

@@ -45,7 +45,7 @@ public class Review {
     
     @ManyToOne(targetEntity=User.class, fetch=FetchType.LAZY)
     @JoinColumn(name="users_id")
-    @JsonIncludeProperties({"id","username"})
+    @JsonIncludeProperties({"id","email"})
     private User user;
     
     private Double userRating;

@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -68,8 +67,13 @@ public class ReviewControllerTest {
     
         filmRepository.saveAll(List.of(pirates, avatar));
         
+        userRepository.save(new User()
+                                    .setEmail("bobreed@film.com")
+                                    .setPassword("bobbyreeder12")
+                                    .setRole(Role.REGISTERED));
         Review piratesReview = new Review()
                 .setReview("Pirates review")
+                .setUser(userRepository.findUserByEmail("bobreed@film.com").get())
                 .setCreatedOn(LocalDate.now())
                 .setLastModified(LocalDate.now())
                 .setUserRating(9.1)
@@ -82,11 +86,6 @@ public class ReviewControllerTest {
                 .setFilm(avatar);
     
         reviewRepository.saveAll(List.of(piratesReview, avatarReview));
-    
-        userRepository.save(new User()
-                .setEmail("bobreed@film.com")
-                .setPassword("bobbyreeder12")
-                .setRole(Role.REGISTERED));
     }
     
     @AfterEach
@@ -96,7 +95,7 @@ public class ReviewControllerTest {
     }
     
     @Test
-    @WithMockUser(username = "bobreed@film.com", password = "bobbyreeder12", authorities = {"ADMINISTRATOR"})
+    @WithMockUser(username = "bobreed@film.com", password = "bobbyreeder12", authorities = {"REGISTERED"})
     public void addReviewTest() throws Exception {
         ReviewRequest newReviewRequest = getReview();
         
@@ -120,7 +119,7 @@ public class ReviewControllerTest {
     }
     
     @Test
-    @WithMockUser(username = "newuser@film.com", password = "newpassword", authorities = {"REGISTERED"})
+    @WithMockUser(username = "admin@film.com", password = "administrator", authorities = {"ADMINISTRATOR"})
     public void getAllTest() throws Exception{
         ReviewRequest newReviewRequest = getReview();
         mockMvc.perform(
@@ -142,6 +141,29 @@ public class ReviewControllerTest {
     }
     
     @Test
+    @WithMockUser(username = "bobreed@film.com", password = "bobbyreeder12", authorities = {"REGISTERED"})
+    public void getAllByUserTest() throws Exception{
+        ReviewRequest newReviewRequest = getReview();
+        mockMvc.perform(
+                       post(URI)
+                               .contentType(MediaType.APPLICATION_JSON)
+                               //.content(mapper.writeValueAsString(newFilmRequest))
+                               .content(mapToJson(newReviewRequest))
+                               .accept(MediaType.APPLICATION_JSON))
+               .andExpect(status().isCreated())
+               .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    
+        MvcResult result = mockMvc.perform(get(URI+"/all"))
+                                  .andExpect(status().isOk())
+                                  .andReturn();
+    
+        String content = result.getResponse().getContentAsString();
+        Review[] reviews = mapFromJson(content, Review[].class);
+        assertEquals(1, reviews.length);
+    }
+    
+    @Test
+    @WithMockUser(username = "admin@film.com", password = "administrator", authorities = {"ADMINISTRATOR"})
     public void getOneTest() throws Exception {
         ReviewRequest newReviewRequest = getReview();
         mockMvc.perform(get(URI+"/" + 10L))
@@ -177,6 +199,7 @@ public class ReviewControllerTest {
     }
     
     @Test
+    @WithMockUser(username = "admin@film.com", password = "administrator", authorities = {"ADMINISTRATOR"})
     public void deleteTest() throws Exception {
         ReviewRequest newReviewRequest = getReview();
         mockMvc.perform(delete(URI+"/"+9L))
@@ -211,7 +234,36 @@ public class ReviewControllerTest {
     }
     
     @Test
-    public void updateTest() throws Exception { //TODO: Passes but maybe problematic
+    @WithMockUser(username = "bobreed@film.com", password = "bobbyreeder12", authorities = {"REGISTERED"})
+    public void deleteByUser_SuccessTest() throws Exception {
+        ReviewRequest newReviewRequest = getReview();
+        mockMvc.perform(
+                       post(URI)
+                               .contentType(MediaType.APPLICATION_JSON)
+                               //.content(mapper.writeValueAsString(newFilmRequest))
+                               .content(mapToJson(newReviewRequest))
+                               .accept(MediaType.APPLICATION_JSON))
+               .andExpect(status().isCreated())
+               .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+        
+        List<Review> review = reviewRepository.findReviewByUser("bobreed@film.com");
+        
+        mockMvc
+                .perform(delete(URI+"/"+review.get(0).getId()))
+                .andExpect(status().isOk());
+    
+        MvcResult result = mockMvc.perform(get(URI+"/all"))
+                                  .andExpect(status().isOk())
+                                  .andReturn();
+    
+        String content = result.getResponse().getContentAsString();
+        Review[] reviews = mapFromJson(content, Review[].class);
+        assertEquals(0, reviews.length); //Total reviews by user will be 0
+    }
+    
+    @Test
+    @WithMockUser(username = "admin@film.com", password = "administrator", authorities = {"ADMINISTRATOR"})
+    public void updateTest() throws Exception {
         ReviewRequest newReviewRequest = getReview();
         MvcResult postedReview = mockMvc.perform(
                                                 post(URI)
