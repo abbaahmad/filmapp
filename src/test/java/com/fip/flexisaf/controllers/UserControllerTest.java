@@ -20,8 +20,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -44,6 +43,7 @@ public class UserControllerTest {
     
     @Test
     public void createAndRegisterUserTest() throws Exception {
+        //Test should fail with password exception: Password cannot be null
         User alice = new User().setName("Alice Alex")
                                .setEmail("aalex@film.com")
                                .setPassword("aliceAlex123")
@@ -69,6 +69,45 @@ public class UserControllerTest {
                        post(URI+"/register")
                                .contentType(MediaType.APPLICATION_JSON)
                                .content(mapToJson(alice))
+                               .accept(MediaType.APPLICATION_JSON))
+               .andExpect(status().isConflict());
+               //.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+               //.andExpect(jsonPath("$.error_message").value("409 CONFLICT \"User exist!\""))
+               //.andExpect(jsonPath("$.error_code").value("409 CONFLICT"));
+        
+        UserDto aliceResult = mapFromJson(result.getResponse().getContentAsString(), UserDto.class);
+        assertNotNull(aliceResult);
+        assertEquals(aliceResult.getName(), alice.getName());
+    }
+    
+    @Test
+    public void createAndRegisterUserWithMatchingPasswordTest() throws Exception {
+        User alice = new User().setName("Alice Alex")
+                               .setEmail("aalex@film.com")
+                               .setPassword("aliceAlex123")
+                               .setRole(Role.REGISTERED);
+        NewUserRequest aliceRequest = new NewUserRequest()
+                .setName("Alice Alex")
+                .setEmail("aalex@film.com")
+                .setPassword("aliceAlex123")
+                .setMatchingPassword("aliceAlex123")
+                .setRole(Role.REGISTERED);
+        
+        MvcResult result = mockMvc.perform(
+                                          post(URI+"/register")
+                                                  .contentType(MediaType.APPLICATION_JSON)
+                                                  .content(mapToJson(aliceRequest))
+                                                  .accept(MediaType.APPLICATION_JSON))
+                                  .andExpect(status().isCreated())
+                                  .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                  //.andExpect(jsonPath("$.id").isString())
+                                  .andExpect(jsonPath("$.name").value(alice.getName()))
+                                  .andReturn();
+        
+        mockMvc.perform(
+                       post(URI+"/register")
+                               .contentType(MediaType.APPLICATION_JSON)
+                               .content(mapToJson(aliceRequest))
                                .accept(MediaType.APPLICATION_JSON))
                .andExpect(status().isConflict());
                //.andExpect(content().contentType(MediaType.APPLICATION_JSON))
