@@ -120,6 +120,90 @@ public class UserControllerTest {
     }
     
     @Test
+    void loginTest() throws Exception {
+        User alice = userRepository.save(
+                new User().setName("Alice Alex")
+                                .setEmail("aalex@film.com")
+                                .setPassword("aliceAlex123")
+                                .setRole(Role.REGISTERED)
+        );
+        UserLoginRequest aliceLoginRequest = new UserLoginRequest()
+                .setEmail("aalex@film.com")
+                .setPassword("aliceAlex123");
+    
+        NewUserRequest aliceRequest = new NewUserRequest()
+                .setName("Alice Alex")
+                .setEmail("aalex@film.com")
+                .setPassword("aliceAlex123")
+                .setMatchingPassword("aliceAlex123")
+                .setRole(Role.REGISTERED);
+    
+        MvcResult registrationResult = mockMvc.perform(
+                                          post(URI+"/register")
+                                                  .contentType(MediaType.APPLICATION_JSON)
+                                                  .content(mapToJson(aliceRequest))
+                                                  .accept(MediaType.APPLICATION_JSON))
+                                  .andExpect(status().isCreated())
+                                  .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                  //.andExpect(jsonPath("$.id").isString())
+                                  //.andExpect(jsonPath("$.name").value(alice.getName()))
+                                  .andReturn();
+        
+        MvcResult loginResult = mockMvc.perform(
+                                          post(URI)
+                                                  .contentType(MediaType.APPLICATION_JSON)
+                                                  .content(mapToJson(aliceLoginRequest))
+                                                  .accept(MediaType.APPLICATION_JSON))
+                                  .andExpect(status().isOk())
+                                  //.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                  //.andExpect(jsonPath("$.id").isString())
+                                  .andExpect(jsonPath("$.name").value(alice.getName()))
+                                  .andReturn();
+        UserDto aliceResult = mapFromJson(loginResult.getResponse().getContentAsString(), UserDto.class);
+        assertNotNull(aliceResult);
+        assertEquals(aliceResult.getName(), alice.getName());
+    }
+    
+    @Test
+    public void createAndRegisterUserJWTTest() throws Exception {
+        User alice = new User().setName("Alice Alex")
+                               .setEmail("aalex@film.com")
+                               .setPassword("aliceAlex123")
+                               .setRole(Role.REGISTERED);
+        NewUserRequest aliceRequest = new NewUserRequest()
+                .setName("Alice Alex")
+                .setEmail("aalex@film.com")
+                .setPassword("aliceAlex123")
+                .setMatchingPassword("aliceAlex123")
+                .setRole(Role.REGISTERED);
+        
+        MvcResult result = mockMvc.perform(
+                                          post(URI+"/register")
+                                                  .contentType(MediaType.APPLICATION_JSON)
+                                                  .content(mapToJson(aliceRequest))
+                                                  .accept(MediaType.APPLICATION_JSON))
+                                  .andExpect(status().isCreated())
+                                  .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                  //.andExpect(jsonPath("$.id").isString())
+                                  .andExpect(jsonPath("$.name").value(alice.getName()))
+                                  .andReturn();
+        
+        mockMvc.perform(
+                       post(URI+"/register")
+                               .contentType(MediaType.APPLICATION_JSON)
+                               .content(mapToJson(aliceRequest))
+                               .accept(MediaType.APPLICATION_JSON))
+               .andExpect(status().isConflict());
+               //.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+               //.andExpect(jsonPath("$.error_message").value("409 CONFLICT \"User exist!\""))
+               //.andExpect(jsonPath("$.error_code").value("409 CONFLICT"));
+        
+        UserDto aliceResult = mapFromJson(result.getResponse().getContentAsString(), UserDto.class);
+        assertNotNull(aliceResult);
+        assertEquals(aliceResult.getName(), alice.getName());
+    }
+    
+    @Test
     public void getOneTest() throws Exception {
         User alice = new User().setName("Alice Alex")
                                .setEmail("aalex@film.com")

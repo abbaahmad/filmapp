@@ -1,5 +1,7 @@
 package com.fip.flexisaf.services.impl;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.fip.flexisaf.controllers.requests.user.NewUserRequest;
 import com.fip.flexisaf.controllers.requests.user.UserLoginRequest;
 import com.fip.flexisaf.models.User;
@@ -15,7 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,7 +29,7 @@ public class UserService implements UserDetailsService {
     @Autowired
     private PasswordEncoder encoder;
     
-    public UserDto saveUser(NewUserRequest newUserRequest) {
+    public String saveUser(NewUserRequest newUserRequest) {
         if(userRepository.findUserByEmail(newUserRequest.getEmail()).isPresent()){
             throw new ResponseStatusException(HttpStatus.CONFLICT, "User already exist!");
         }
@@ -36,7 +38,8 @@ public class UserService implements UserDetailsService {
         user.setPassword(encoder.encode(newUserRequest.getPassword()));
         User savedUser = userRepository.save(user);
     
-        return UserMapper.toUserDto(savedUser);
+//        return UserMapper.toUserDto(savedUser);
+        return getTokens(savedUser);
     }
     
     public UserDto loadUser(UserLoginRequest userLoginRequest){
@@ -70,5 +73,24 @@ public class UserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findUserByEmail(username)
                              .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such User"));
+    }
+    
+    private String getTokens(User user){
+        //org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) user;
+        Algorithm algorithm = Algorithm.HMAC256("secret".getBytes()); //ECSDA algorithm
+        String accessToken = JWT.create()
+                                .withSubject(user.getUsername())
+                                .withExpiresAt(new Date(System.currentTimeMillis() + 5 * 60 * 1000))
+                                .withClaim("roles", new ArrayList<>(user.getAuthorities()))
+                                .sign(algorithm);
+        String refreshToken = JWT.create()
+                                 .withSubject(user.getUsername())
+                                 .withExpiresAt(new Date(System.currentTimeMillis() + 20 * 60 * 1000))
+                                 .withClaim("roles", new ArrayList<>(user.getAuthorities()))
+                                 .sign(algorithm);
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("access_token", accessToken);
+        tokens.put("refresh_token", refreshToken);
+        return tokens.toString();
     }
 }

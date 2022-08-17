@@ -1,5 +1,6 @@
 package com.fip.flexisaf.models;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
@@ -14,14 +15,13 @@ import java.util.Objects;
 @Entity
 @Data
 @Accessors(chain = true)
-@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Film {
     @Id
     @SequenceGenerator(
             name="film_sequence",
             sequenceName = "film_sequence",
-            allocationSize = 1,
-            schema = "public"
+            allocationSize = 1
     )
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,

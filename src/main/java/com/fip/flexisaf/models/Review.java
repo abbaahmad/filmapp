@@ -1,6 +1,7 @@
 package com.fip.flexisaf.models;
 
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
@@ -17,14 +18,13 @@ import java.util.Objects;
 @Entity
 @Data
 @Accessors(chain = true)
-@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Review {
     @Id
     @SequenceGenerator(
             name="review_sequence",
             sequenceName = "review_sequence",
-            allocationSize = 1,
-            schema = "public"
+            allocationSize = 1
     )
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
@@ -32,8 +32,8 @@ public class Review {
     )
     private Long id;
     
-    @ManyToOne(targetEntity=Film.class, fetch=FetchType.LAZY)
-    @JoinColumn(name="film_id")
+    @ManyToOne(targetEntity=Film.class, fetch=FetchType.EAGER)
+    //@JoinColumn(name="film_id")
     @JsonIncludeProperties({"id", "name"})
     private Film film;
     
@@ -43,8 +43,8 @@ public class Review {
     @LastModifiedDate
     private LocalDate lastModified;
     
-    @ManyToOne(targetEntity=User.class, fetch=FetchType.LAZY)
-    @JoinColumn(name="users_id")
+    @ManyToOne(targetEntity=User.class, fetch=FetchType.EAGER)
+    //@JoinColumn(name="users_id")
     @JsonIncludeProperties({"id","email"})
     private User user;
     

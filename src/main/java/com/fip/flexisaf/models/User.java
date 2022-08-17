@@ -1,6 +1,7 @@
 package com.fip.flexisaf.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.EqualsAndHashCode;
@@ -24,7 +25,7 @@ import java.util.Set;
 @Entity
 @EqualsAndHashCode
 @Accessors(chain = true)
-@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class User implements UserDetails {
     
     @Id
@@ -33,8 +34,7 @@ public class User implements UserDetails {
     @SequenceGenerator(
             name="user_sequence",
             sequenceName = "user_sequence",
-            allocationSize = 1,
-            schema = "public"
+            allocationSize = 1
     )
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
